@@ -5,13 +5,13 @@ pub type StrCow = Cow<'static, str>;
 
 static mut TRACE: Option<Trace> = None;
 
-pub fn start_trace() {
+pub fn start_trace(clock: fn() -> f64) {
     unsafe {
         if TRACE.is_some() {
             panic!("Expected trace to be not be set!");
         }
 
-        TRACE = Some(Trace::new());
+        TRACE = Some(Trace::new(clock));
     }
 }
 
@@ -31,12 +31,20 @@ pub fn get_mut_trace() -> Option<&'static mut Trace> {
 pub struct Trace {
     #[serde(rename = "traceEvents")]
     events: Vec<Event>,
+    #[serde(skip_serializing)]
+    clock: fn() -> f64
 }
 
 impl Trace {
+    fn new(clock: fn() -> f64) -> Trace {
+        Trace {
+            clock,
+            events: Vec::new()
+        }
+    }
+
     pub fn get_time(&self) -> f64 {
-        //game::cpu::get_used()
-        0.0
+        (self.clock)()
     }
 }
 
@@ -136,13 +144,5 @@ fn end<S: Into<StrCow>>(name: S) {
         };
 
         trace.events.push(Event::End(event));
-    }
-}
-
-impl Trace {
-    fn new() -> Trace {
-        Trace {
-            events: Vec::new()
-        }
     }
 }
