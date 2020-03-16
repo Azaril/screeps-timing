@@ -34,6 +34,13 @@ pub struct Trace {
     events: Vec<Event>,
 }
 
+impl Trace {
+    pub fn get_time() -> f64 {
+        //game::cpu::get_used()
+        0
+    }
+}
+
 #[derive(Serialize)]
 struct TracingEvent {
     #[serde(rename = "name")]
