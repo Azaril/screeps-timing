@@ -1,4 +1,3 @@
-use screeps::*;
 use serde::*;
 use std::borrow::Cow;
 
@@ -35,9 +34,9 @@ pub struct Trace {
 }
 
 impl Trace {
-    pub fn get_time() -> f64 {
+    pub fn get_time(&self) -> f64 {
         //game::cpu::get_used()
-        0
+        0.0
     }
 }
 
@@ -120,7 +119,7 @@ fn start<S: Into<StrCow>>(name: S) {
     if let Some(trace) = get_mut_trace() {
         let event = BeginEvent {
             name: name.into(),
-            time: game::cpu::get_used(),
+            time: trace.get_time()
         };
 
         trace.events.push(Event::Begin(event));
@@ -133,7 +132,7 @@ fn end<S: Into<StrCow>>(name: S) {
     if let Some(trace) = get_mut_trace() {
         let event = EndEvent {
             name: name.into(),
-            time: game::cpu::get_used(),
+            time: trace.get_time()
         };
 
         trace.events.push(Event::End(event));
