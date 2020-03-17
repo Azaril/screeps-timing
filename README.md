@@ -1,7 +1,11 @@
 Add to your cargo.toml:
 
+<<<<<<< HEAD
 ~~~
 [features]
+=======
+`[features]
+>>>>>>> 4b41d6b984f1e31955b68360d3159bc3f59cce73
 default = ["profile"]
 profile = ["screeps-timing"]
 
