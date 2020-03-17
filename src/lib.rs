@@ -5,7 +5,7 @@ pub type StrCow = Cow<'static, str>;
 
 static mut TRACE: Option<Trace> = None;
 
-pub fn start_trace(clock: fn() -> f64) {
+pub fn start_trace(clock: fn() -> u64) {
     unsafe {
         if TRACE.is_some() {
             panic!("Expected trace to be not be set!");
@@ -32,18 +32,18 @@ pub struct Trace {
     #[serde(rename = "traceEvents")]
     events: Vec<Event>,
     #[serde(skip_serializing)]
-    clock: fn() -> f64
+    clock: fn() -> u64
 }
 
 impl Trace {
-    fn new(clock: fn() -> f64) -> Trace {
+    fn new(clock: fn() -> u64) -> Trace {
         Trace {
             clock,
             events: Vec::new()
         }
     }
 
-    pub fn get_time(&self) -> f64 {
+    pub fn get_time(&self) -> u64 {
         (self.clock)()
     }
 }
@@ -57,14 +57,14 @@ struct TracingEvent {
     #[serde(rename = "tid")]
     thread_id: u32, 
     #[serde(rename = "ts")]
-    timestamp: f64
+    timestamp: u64
 }
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(into = "TracingEvent")]
 struct BeginEvent {
     name: StrCow,
-    time: f64,
+    time: u64,
 }
 
 impl Into<TracingEvent> for BeginEvent {
@@ -82,7 +82,7 @@ impl Into<TracingEvent> for BeginEvent {
 #[serde(into = "TracingEvent")]
 struct EndEvent {
     name: StrCow,
-    time: f64
+    time: u64
 }
 
 impl Into<TracingEvent> for EndEvent {
