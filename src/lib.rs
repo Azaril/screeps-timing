@@ -1,11 +1,10 @@
 use serde::*;
-use std::borrow::Cow;
 
-pub type StrCow = Cow<'static, str>;
+pub type StrCow = &'static str;
 
 static mut TRACE: Option<Trace> = None;
 
-pub fn start_trace(clock: fn() -> u64) {
+pub fn start_trace(clock: Box<dyn Fn() -> u64>) {
     unsafe {
         if TRACE.is_some() {
             panic!("Expected trace to be not be set!");
@@ -27,16 +26,16 @@ pub fn get_mut_trace() -> Option<&'static mut Trace> {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize)]
 pub struct Trace {
     #[serde(rename = "traceEvents")]
     events: Vec<Event>,
     #[serde(skip_serializing)]
-    clock: fn() -> u64
+    clock: Box<dyn Fn() -> u64>
 }
 
 impl Trace {
-    fn new(clock: fn() -> u64) -> Trace {
+    fn new(clock: Box<dyn Fn() -> u64>) -> Trace {
         Trace {
             clock,
             events: Vec::new()
