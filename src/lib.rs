@@ -15,15 +15,11 @@ pub fn start_trace(clock: Box<dyn Fn() -> u64>) {
 }
 
 pub fn stop_trace() -> Trace {
-    unsafe {
-        TRACE.take().unwrap()
-    }
+    unsafe { TRACE.take().unwrap() }
 }
 
 pub fn get_mut_trace() -> Option<&'static mut Trace> {
-    unsafe {
-        TRACE.as_mut()
-    }
+    unsafe { TRACE.as_mut() }
 }
 
 #[derive(Serialize)]
@@ -31,14 +27,14 @@ pub struct Trace {
     #[serde(rename = "traceEvents")]
     events: Vec<Event>,
     #[serde(skip_serializing)]
-    clock: Box<dyn Fn() -> u64>
+    clock: Box<dyn Fn() -> u64>,
 }
 
 impl Trace {
     fn new(clock: Box<dyn Fn() -> u64>) -> Trace {
         Trace {
             clock,
-            events: Vec::new()
+            events: Vec::new(),
         }
     }
 
@@ -54,9 +50,9 @@ struct TracingEvent {
     #[serde(rename = "pid")]
     process_id: u32,
     #[serde(rename = "tid")]
-    thread_id: u32, 
+    thread_id: u32,
     #[serde(rename = "ts")]
-    timestamp: u64
+    timestamp: u64,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -72,7 +68,7 @@ impl Into<TracingEvent> for BeginEvent {
             name: self.name,
             process_id: 0,
             thread_id: 0,
-            timestamp: self.time
+            timestamp: self.time,
         }
     }
 }
@@ -81,7 +77,7 @@ impl Into<TracingEvent> for BeginEvent {
 #[serde(into = "TracingEvent")]
 struct EndEvent {
     name: IdentStr,
-    time: u64
+    time: u64,
 }
 
 impl Into<TracingEvent> for EndEvent {
@@ -90,7 +86,7 @@ impl Into<TracingEvent> for EndEvent {
             name: self.name,
             process_id: 0,
             thread_id: 0,
-            timestamp: self.time
+            timestamp: self.time,
         }
     }
 }
@@ -101,13 +97,13 @@ enum Event {
     #[serde(rename = "B")]
     Begin(BeginEvent),
     #[serde(rename = "E")]
-    End(EndEvent)
+    End(EndEvent),
 }
 
 #[must_use = "The guard is immediately dropped after instantiation. This is probably not
 what you want! Consider using a `let` binding to increase its lifetime."]
 pub struct SpanGuard {
-    name: IdentStr
+    name: IdentStr,
 }
 
 impl Drop for SpanGuard {
@@ -126,7 +122,7 @@ fn start<S: Into<IdentStr>>(name: S) {
     if let Some(trace) = get_mut_trace() {
         let event = BeginEvent {
             name: name.into(),
-            time: trace.get_time()
+            time: trace.get_time(),
         };
 
         trace.events.push(Event::Begin(event));
@@ -139,7 +135,7 @@ fn end<S: Into<IdentStr>>(name: S) {
     if let Some(trace) = get_mut_trace() {
         let event = EndEvent {
             name,
-            time: trace.get_time()
+            time: trace.get_time(),
         };
 
         trace.events.push(Event::End(event));
