@@ -1,6 +1,6 @@
 use serde::*;
 
-pub type StrCow = &'static str;
+pub type IdentStr = &'static str;
 
 static mut TRACE: Option<Trace> = None;
 
@@ -50,7 +50,7 @@ impl Trace {
 #[derive(Serialize)]
 struct TracingEvent {
     #[serde(rename = "name")]
-    name: StrCow,
+    name: IdentStr,
     #[serde(rename = "pid")]
     process_id: u32,
     #[serde(rename = "tid")]
@@ -62,7 +62,7 @@ struct TracingEvent {
 #[derive(Clone, Debug, Serialize)]
 #[serde(into = "TracingEvent")]
 struct BeginEvent {
-    name: StrCow,
+    name: IdentStr,
     time: u64,
 }
 
@@ -80,7 +80,7 @@ impl Into<TracingEvent> for BeginEvent {
 #[derive(Clone, Debug, Serialize)]
 #[serde(into = "TracingEvent")]
 struct EndEvent {
-    name: StrCow,
+    name: IdentStr,
     time: u64
 }
 
@@ -107,22 +107,22 @@ enum Event {
 #[must_use = "The guard is immediately dropped after instantiation. This is probably not
 what you want! Consider using a `let` binding to increase its lifetime."]
 pub struct SpanGuard {
-    name: StrCow
+    name: IdentStr
 }
 
 impl Drop for SpanGuard {
     fn drop(&mut self) {
-        end(self.name.clone());
+        end(self.name);
     }
 }
 
-pub fn start_guard<S: Into<StrCow>>(name: S) -> SpanGuard {
+pub fn start_guard<S: Into<IdentStr>>(name: S) -> SpanGuard {
     let name = name.into();
-    start(name.clone());
+    start(name);
     SpanGuard { name }
 }
 
-fn start<S: Into<StrCow>>(name: S) {
+fn start<S: Into<IdentStr>>(name: S) {
     if let Some(trace) = get_mut_trace() {
         let event = BeginEvent {
             name: name.into(),
@@ -133,12 +133,12 @@ fn start<S: Into<StrCow>>(name: S) {
     }
 }
 
-fn end<S: Into<StrCow>>(name: S) {
+fn end<S: Into<IdentStr>>(name: S) {
     let name = name.into();
 
     if let Some(trace) = get_mut_trace() {
         let event = EndEvent {
-            name: name.into(),
+            name,
             time: trace.get_time()
         };
 
