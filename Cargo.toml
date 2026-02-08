@@ -2,7 +2,7 @@
 name = "screeps-timing"
 version = "0.1.0"
 authors = ["William Archbell <william@archbell.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 scopeguard = { version = "1.0" }

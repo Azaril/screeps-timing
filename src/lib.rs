@@ -1,25 +1,31 @@
 use serde::*;
+use std::cell::RefCell;
 
 pub type IdentStr = &'static str;
 
-static mut TRACE: Option<Trace> = None;
+thread_local! {
+    static TRACE: RefCell<Option<Trace>> = RefCell::new(None);
+}
 
 pub fn start_trace(clock: Box<dyn Fn() -> u64>) {
-    unsafe {
-        if TRACE.is_some() {
-            panic!("Expected trace to be not be set!");
+    TRACE.with(|t| {
+        let mut trace = t.borrow_mut();
+        if trace.is_some() {
+            panic!("Expected trace to not be set!");
         }
-
-        TRACE = Some(Trace::new(clock));
-    }
+        *trace = Some(Trace::new(clock));
+    });
 }
 
 pub fn stop_trace() -> Trace {
-    unsafe { TRACE.take().unwrap() }
+    TRACE.with(|t| t.borrow_mut().take().unwrap())
 }
 
-pub fn get_mut_trace() -> Option<&'static mut Trace> {
-    unsafe { TRACE.as_mut() }
+pub fn with_trace<F, R>(f: F) -> Option<R>
+where
+    F: FnOnce(&mut Trace) -> R,
+{
+    TRACE.with(|t| t.borrow_mut().as_mut().map(f))
 }
 
 #[derive(Serialize)]
@@ -119,25 +125,25 @@ pub fn start_guard<S: Into<IdentStr>>(name: S) -> SpanGuard {
 }
 
 fn start<S: Into<IdentStr>>(name: S) {
-    if let Some(trace) = get_mut_trace() {
+    with_trace(|trace| {
         let event = BeginEvent {
             name: name.into(),
             time: trace.get_time(),
         };
 
         trace.events.push(Event::Begin(event));
-    }
+    });
 }
 
 fn end<S: Into<IdentStr>>(name: S) {
     let name = name.into();
 
-    if let Some(trace) = get_mut_trace() {
+    with_trace(|trace| {
         let event = EndEvent {
             name,
             time: trace.get_time(),
         };
 
         trace.events.push(Event::End(event));
-    }
+    });
 }
