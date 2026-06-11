@@ -4,7 +4,7 @@ use std::cell::RefCell;
 pub type IdentStr = &'static str;
 
 thread_local! {
-    static TRACE: RefCell<Option<Trace>> = RefCell::new(None);
+    static TRACE: RefCell<Option<Trace>> = const { RefCell::new(None) };
 }
 
 pub fn start_trace(clock: Box<dyn Fn() -> u64>) {
@@ -68,13 +68,13 @@ struct BeginEvent {
     time: u64,
 }
 
-impl Into<TracingEvent> for BeginEvent {
-    fn into(self) -> TracingEvent {
+impl From<BeginEvent> for TracingEvent {
+    fn from(event: BeginEvent) -> TracingEvent {
         TracingEvent {
-            name: self.name,
+            name: event.name,
             process_id: 0,
             thread_id: 0,
-            timestamp: self.time,
+            timestamp: event.time,
         }
     }
 }
@@ -86,13 +86,13 @@ struct EndEvent {
     time: u64,
 }
 
-impl Into<TracingEvent> for EndEvent {
-    fn into(self) -> TracingEvent {
+impl From<EndEvent> for TracingEvent {
+    fn from(event: EndEvent) -> TracingEvent {
         TracingEvent {
-            name: self.name,
+            name: event.name,
             process_id: 0,
             thread_id: 0,
-            timestamp: self.time,
+            timestamp: event.time,
         }
     }
 }
